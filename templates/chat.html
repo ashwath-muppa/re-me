@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+<h2>Chat</h2>
+
+<!-- Month Selection Form -->
+<form action="{{ url_for('chat') }}" method="post" id="month-select-form">
+    <label for="selected_month">Select Timeframe:</label>
+    <select name="selected_month" id="selected_month" onchange="this.form.submit()">
+        <option value="">-- Select a timeframe --</option>
+        {% for month, year in months %}
+            <option value="{{ month }} {{ year }}" {% if selected_month == month + ' ' + year %}selected{% endif %}>
+                {{ month }} {{ year }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
+
+<div class="chat-container" id="chat-container">
+    {% if chat_history %}
+        {% for message in chat_history %}
+            <div class="message-group {{ message.type }}-group">
+                {% if message.type == 'bot_video' %}
+                    <div class="bot-bubble chat-bubble">
+                        <video controls style="max-width: 320px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <source src="{{ message.video_url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="message-timestamp-outside">{{ message.timestamp }}</div>
+                {% elif message.type == 'bot_audio' %}
+                    <div class="bot-bubble chat-bubble">
+                        <audio controls>
+                            <source src="{{ message.audio_url }}" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                    <div class="message-timestamp-outside">{{ message.timestamp }}</div>
+                {% elif message.type == 'bot' %}
+                    <div class="bot-bubble chat-bubble">
+                        {{ message.content }}
+                    </div>
+                    <div class="message-timestamp-outside">{{ message.timestamp }}</div>
+                {% elif message.type == 'user' %}
+                    <div class="user-bubble chat-bubble">
+                        {{ message.content }}
+                    </div>
+                    <div class="message-timestamp-outside">{{ message.timestamp }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-chat-placeholder" style="color: #aaa; text-align: center; margin-top: 2em;">
+            Start the conversation!
+        </div>
+    {% endif %}
+</div>
+
+<!-- Chat Input Form -->
+<form action="{{ url_for('chat') }}" method="post" class="chat-form" id="chat-form" enctype="multipart/form-data">
+    <input type="hidden" name="selected_month" value="{{ selected_month }}">
+    <input type="text" name="chat_message" id="chat-message-input" placeholder="Type your message..." required>
+    <button type="submit">Send</button>
+    <button id="record-button" type="button" aria-label="Record">
+        <i class="fa fa-microphone"></i>
+    </button>
+</form>
+
+<script>
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-message-input');
+    const chatContainer = document.getElementById('chat-container');
+    const selectedMonthInput = chatForm.querySelector('input[name="selected_month"]');
+    const recordButton = document.getElementById('record-button');
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+
+    // Function to scroll chat to the bottom
+    function scrollToBottom() {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Scroll to bottom on page load
+    window.onload = scrollToBottom;
+
+    // Handle text message submission
+    chatForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const message = chatInput.value.trim();
+        const selectedMonth = selectedMonthInput.value;
+
+        if (!message || !selectedMonth) {
+            return;
+        }
+
+        // Clear the input field immediately
+        chatInput.value = '';
+
+        // Send the message data to the server using fetch API
+        await sendMessage(message, selectedMonth);
+    });
+
+    // Handle record button click
+    recordButton.addEventListener('click', async function() {
+        if (!isRecording) {
+            // Start recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' }); // Use wav type
+                    // Send the audio blob to the server
+                    await sendAudio(audioBlob, selectedMonthInput.value);
+
+                    // Stop the microphone stream tracks
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                recordButton.textContent = '⏹️ Stop Recording';
+                recordButton.style.backgroundColor = 'red';
+                console.log('Recording started...');
+
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                alert('Could not access microphone. Please ensure it is connected and allowed.');
+            }
+        } else {
+            // Stop recording
+            mediaRecorder.stop();
+            isRecording = false;
+            recordButton.textContent = '🎤 Record';
+            recordButton.style.backgroundColor = ''; // Reset background
+            console.log('Recording stopped.');
+        }
+    });
+
+    // Function to send text message via AJAX
+    async function sendMessage(message, selectedMonth) {
+         try {
+            const response = await fetch('{{ url_for("chat") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    'selected_month': selectedMonth,
+                    'chat_message': message
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            updateChatContainer(data.chat_history);
+
+        } catch (error) {
+            console.error('Error sending message:', error);
+            alert('Failed to send message.');
+        }
+    }
+
+    // Function to send audio file via AJAX
+    async function sendAudio(audioBlob, selectedMonth) {
+        const formData = new FormData();
+        formData.append('audio_file', audioBlob, 'recording.wav');
+        formData.append('selected_month', selectedMonth);
+
+        try {
+            const response = await fetch('{{ url_for("chat") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            updateChatContainer(data.chat_history);
+
+            // --- Add this block to update the indicator ---
+            if (data.audio_uploaded) {
+                let indicator = document.querySelector('.audio-upload-indicator');
+                if (!indicator) {
+                    indicator = document.createElement('span');
+                    indicator.className = 'audio-upload-indicator';
+                    indicator.style.background = '#ffe066';
+                    indicator.style.color = '#333';
+                    indicator.style.borderRadius = '6px';
+                    indicator.style.padding = '8px 14px';
+                    indicator.style.marginLeft = '10px';
+                    indicator.style.fontWeight = '600';
+                    indicator.textContent = 'Already uploaded';
+                    document.getElementById('chat-form').appendChild(indicator);
+                } else {
+                    indicator.textContent = 'Already uploaded';
+                    indicator.style.display = 'inline-block';
+                }
+                // Optionally hide the upload buttons if present
+                let uploadBtn = document.querySelector('.upload-audio-btn');
+                if (uploadBtn) uploadBtn.style.display = 'none';
+                let fileInput = document.getElementById('audio-file');
+                if (fileInput) fileInput.style.display = 'none';
+            }
+            // --- End block ---
+
+        } catch (error) {
+            console.error('Error sending audio:', error);
+            alert('Failed to send audio.');
+        }
+    }
+
+    // Function to update the chat container with new history
+    function updateChatContainer(chatHistory) {
+        chatContainer.innerHTML = ''; // Clear current messages
+        chatHistory.forEach(msg => {
+            const messageGroupDiv = document.createElement('div');
+            messageGroupDiv.classList.add('message-group');
+            messageGroupDiv.classList.add(msg.type + '-group');
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add('chat-bubble');
+            bubbleDiv.classList.add(msg.type === 'user' ? 'user-bubble' : 'bot-bubble');
+
+            const timestampDiv = document.createElement('div');
+            timestampDiv.classList.add('message-timestamp-outside');
+            timestampDiv.style.fontSize = '0.7em';
+            timestampDiv.style.opacity = '0.8';
+            timestampDiv.textContent = msg.timestamp;
+
+            if (msg.type === 'bot_audio' && msg.audio_url) {
+                bubbleDiv.innerHTML = `
+                    <audio controls>
+                        <source src="${msg.audio_url}" type="audio/wav">
+                        Your browser does not support the audio element.
+                    </audio>
+                `;
+            } else if (msg.type === 'bot_video' && msg.video_url) {
+                bubbleDiv.innerHTML = `
+                    <video controls style="max-width: 320px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <source src="${msg.video_url}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            } else if (msg.content && typeof msg.content === 'string') {
+                bubbleDiv.innerHTML = `
+                    ${msg.content}
+                `;
+            } else {
+                bubbleDiv.innerHTML = `
+                    <pre>Unknown message format.<br>${JSON.stringify(msg, null, 2)}</pre>
+                `;
+            }
+
+            messageGroupDiv.appendChild(bubbleDiv);
+            messageGroupDiv.appendChild(timestampDiv);
+
+            chatContainer.appendChild(messageGroupDiv);
+        });
+        scrollToBottom();
+    }
+
+</script>
+
+{% endblock %}

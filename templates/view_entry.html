@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}View Journal Entry{% endblock %}
+
+{% block content %}
+<div class="view-entry-container">
+    <h2>Journal Entry for {{ month }} {{ year }}</h2>
+    <p><strong>Date:</strong> {{ entry.date }}</p>
+    <p><strong>Content:</strong></p>
+    <p>{{ entry.content }}</p>
+    <a href="{{ url_for('journal') }}">Back to Journal</a>
+</div>
+{% endblock %}

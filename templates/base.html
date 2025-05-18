@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Re: Me{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Remove this entire block -->
+    <!--
+    <div class="background-decor">
+        <div class="decor-shape one"></div>
+        <div class="decor-shape two"></div>
+        <div class="decor-shape three"></div>
+        <div class="decor-shape four"></div>
+        <div class="decor-shape five"></div>
+    </div>
+    -->
+    <div class="d-flex" style="min-height: 100vh;">
+        <!-- Sidebar -->
+        <nav class="sidebar border-end" style="padding: 0 1.25rem;">
+            <div class="sidebar-sticky d-flex flex-column align-items-center py-4">
+                <a class="navbar-brand mb-4" href="{{ url_for('journal') }}">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <div class="fw-bold">Re: Me</div>
+                </a>
+                <ul class="nav flex-column w-100">
+                    <li class="nav-item mb-2">
+                        <a class="sidebar-item {% if request.path == url_for('journal') %}active{% endif %}" href="{{ url_for('journal') }}" style="width: 100%; display: block;">
+                            <i class="fas fa-book me-2"></i> Journal
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="sidebar-item {% if request.path == url_for('chat') %}active{% endif %}" href="{{ url_for('chat') }}" style="width: 100%; display: block;">
+                            <i class="fas fa-comments me-2"></i> Chat
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="sidebar-item {% if request.path == url_for('settings') %}active{% endif %}" href="{{ url_for('settings') }}" style="width: 100%; display: block;">
+                            <i class="fas fa-cog me-2"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!-- Main Content -->
+        <div class="flex-grow-1 d-flex flex-column">
+            <main class="container-fluid py-4 flex-grow-1">
+                {% block content %}{% endblock %}
+            </main>
+            <footer class="footer py-3 bg-light mt-auto">
+                <div class="container text-center">
+                    <span class="text-muted">© 2025 Re: Me - Your Personal Journal Assistant</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="settings-horizontal-outer">
+    <div class="settings-horizontal-row">
+        <!-- Response Mode Card -->
+        <div class="settings-card">
+            <div class="settings-card-title">Response Mode</div>
+            <div class="settings-option-group horizontal">
+                <label class="settings-radio-label custom-radio">
+                    <input type="radio" name="response_mode" value="text" {% if current_mode == 'text' %}checked{% endif %}>
+                    <span class="custom-radio-indicator"></span>
+                    Text
+                </label>
+                <label class="settings-radio-label custom-radio">
+                    <input type="radio" name="response_mode" value="voice_to_voice" {% if current_mode == 'voice_to_voice' %}checked{% endif %}>
+                    <span class="custom-radio-indicator"></span>
+                    Voice
+                </label>
+                <label class="settings-radio-label custom-radio">
+                    <input type="radio" name="response_mode" value="voice_to_video" {% if current_mode == 'voice_to_video' %}checked{% endif %}>
+                    <span class="custom-radio-indicator"></span>
+                    Video
+                </label>
+            </div>
+        </div>
+        <!-- Color Theme Card -->
+        <div class="settings-card">
+            <div class="settings-card-title">Color Theme</div>
+            <div class="settings-section-options">
+                <button type="button" class="settings-theme-btn light">Light</button>
+                <button type="button" class="settings-theme-btn dark">Dark</button>
+                <button type="button" class="settings-theme-btn system">System</button>
+            </div>
+        </div>
+        <!-- Font Size Card -->
+        <div class="settings-card">
+            <div class="settings-card-title">Font Size</div>
+            <div class="settings-section-options">
+                <button type="button" class="settings-font-btn">Small</button>
+                <button type="button" class="settings-font-btn">Medium</button>
+                <button type="button" class="settings-font-btn">Large</button>
+            </div>
+        </div>
+        <!-- Notifications Card -->
+        <div class="settings-card">
+            <div class="settings-card-title">Notifications</div>
+            <div class="settings-section-options">
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+                <span style="margin-left: 12px; color: #b0f5d1;">Enable</span>
+            </div>
+        </div>
+    </div>
+    <div class="settings-horizontal-save">
+        <button type="submit" class="settings-save-btn modern-btn" style="margin-left: 200px;">Save</button>
+    </div>
+</div>
+{% endblock %}

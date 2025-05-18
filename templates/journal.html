@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Journal{% endblock %}
+
+{% block content %}
+<h2>Journal</h2>
+<form action="{{ url_for('add_month') }}" method="post">
+    <select name="month_name" required>
+        <option value="" disabled selected>Select a timeframe</option>
+        <option value="January">January</option>
+        <option value="February">February</option>
+        <option value="March">March</option>
+        <option value="April">April</option>
+        <option value="May">May</option>
+        <option value="June">June</option>
+        <option value="July">July</option>
+        <option value="August">August</option>
+        <option value="September">September</option>
+        <option value="October">October</option>
+        <option value="November">November</option>
+        <option value="December">December</option>
+    </select>
+    <select name="year" required>
+        <option value="" disabled selected>Select a year</option>
+        {% for year in range(2020, 2031) %}
+            <option value="{{ year }}">{{ year }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Add Month</button>
+</form>
+<ul>
+    {% for month, year in months %}
+        <li>
+            {{ month }} {{ year }}
+            <form action="{{ url_for('add_entry', month=month, year=year) }}" method="post">
+                <input type="text" name="entry_content" placeholder="Enter journal entry" required>
+                <input type="date" name="entry_date" required>
+                <button type="submit">Add Entry</button>
+            </form>
+            <!-- Separate form for audio upload -->
+            {% if not existing_audios[(month, year)] %}
+            <form class="audio-upload-form" data-month="{{ month }}" data-year="{{ year }}" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 10px;">
+                <label for="audio-file-{{ month }}-{{ year }}" class="custom-file-label" style="margin: 0;">
+                    Choose file
+                </label>
+                <input type="file" id="audio-file-{{ month }}-{{ year }}" name="audio_file" style="display: none;" required>
+                <button type="submit">Upload Audio</button>
+                <span id="file-name-{{ month }}-{{ year }}" style="margin-left: 8px; color: #b0f5d1;"></span>
+            </form>
+            <span id="audio-uploaded-{{ month }}-{{ year }}" style="display:none; color: #ffe066; margin-left: 10px; font-weight: 600;">
+                Audio Uploaded!
+            </span>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // File input and label logic
+                var fileInput = document.getElementById('audio-file-{{ month }}-{{ year }}');
+                var fileNameSpan = document.getElementById('file-name-{{ month }}-{{ year }}');
+                var label = document.querySelector('label[for="audio-file-{{ month }}-{{ year }}"]');
+                if (fileInput && fileNameSpan && label) {
+                    label.addEventListener('click', function() {
+                        fileInput.click();
+                    });
+                    fileInput.addEventListener('change', function() {
+                        fileNameSpan.textContent = this.files[0] ? this.files[0].name : '';
+                    });
+                }
+            
+                // AJAX upload logic
+                var uploadForm = document.querySelector('.audio-upload-form[data-month="{{ month }}"][data-year="{{ year }}"]');
+                var uploadedSpan = document.getElementById('audio-uploaded-{{ month }}-{{ year }}');
+                if (uploadForm) {
+                    uploadForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        var formData = new FormData(uploadForm);
+                        fetch("{{ url_for('upload_audio', month=month, year=year) }}", {
+                            method: "POST",
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) return response.json();
+                            else throw new Error("Upload failed");
+                        })
+                        .then(data => {
+                            // Hide form, show "Audio Uploaded!"
+                            uploadForm.style.display = "none";
+                            uploadedSpan.style.display = "inline-block";
+                        })
+                        .catch(err => {
+                            alert("Audio upload failed.");
+                        });
+                    });
+                }
+            });
+            </script>
+            {% else %}
+            <span style="color: #ffe066; margin-left: 10px; font-weight: 600;">
+                Audio Uploaded!
+            </span>
+            {% endif %}
+            <!-- Separate form for image upload -->
+            {% if not existing_images[(month, year)] %}
+            <form class="image-upload-form" data-month="{{ month }}" data-year="{{ year }}" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 10px;">
+                <label for="image-file-{{ month }}-{{ year }}" class="custom-file-label" style="margin: 0;">
+                    Choose file
+                </label>
+                <input type="file" id="image-file-{{ month }}-{{ year }}" name="image_file" style="display: none;" required>
+                <button type="submit">Upload Image</button>
+                <span id="image-file-name-{{ month }}-{{ year }}" style="margin-left: 8px; color: #b0f5d1;"></span>
+            </form>
+            <span id="image-uploaded-{{ month }}-{{ year }}" style="display:none; color: #ffe066; margin-left: 10px; font-weight: 600;">
+                Image Uploaded!
+            </span>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // File input and label logic for image
+                var imageFileInput = document.getElementById('image-file-{{ month }}-{{ year }}');
+                var imageFileNameSpan = document.getElementById('image-file-name-{{ month }}-{{ year }}');
+                var imageLabel = document.querySelector('label[for="image-file-{{ month }}-{{ year }}"]');
+                if (imageFileInput && imageFileNameSpan && imageLabel) {
+                    imageLabel.addEventListener('click', function() {
+                        imageFileInput.click();
+                    });
+                    imageFileInput.addEventListener('change', function() {
+                        imageFileNameSpan.textContent = this.files[0] ? this.files[0].name : '';
+                    });
+                }
+            
+                // AJAX upload logic for image
+                var imageUploadForm = document.querySelector('.image-upload-form[data-month="{{ month }}"][data-year="{{ year }}"]');
+                var imageUploadedSpan = document.getElementById('image-uploaded-{{ month }}-{{ year }}');
+                if (imageUploadForm) {
+                    imageUploadForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        var formData = new FormData(imageUploadForm);
+                        fetch("{{ url_for('upload_image', month=month, year=year) }}", {
+                            method: "POST",
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) return response.json();
+                            else throw new Error("Upload failed");
+                        })
+                        .then(data => {
+                            // Hide form, show "Image Uploaded!"
+                            imageUploadForm.style.display = "none";
+                            imageUploadedSpan.style.display = "inline-block";
+                        })
+                        .catch(err => {
+                            alert("Image upload failed.");
+                        });
+                    });
+                }
+            });
+            </script>
+            {% else %}
+            <span style="color: #ffe066; margin-left: 10px; font-weight: 600;">
+                Image Uploaded!
+            </span>
+            {% endif %}
+            <ul>
+                {% for entry in journal_entries[(month, year)] %}
+                    <li>
+                        <div class="entry-block">
+                            <a href="{{ url_for('view_entry', month=month, year=year, index=loop.index0) }}">
+                                Journal entry {{ loop.index }}
+                            </a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var fileInput = document.getElementById('audio-upload');
+    var fileNameSpan = document.getElementById('file-name');
+    if (fileInput && fileNameSpan) {
+        fileInput.addEventListener('change', function() {
+            fileNameSpan.textContent = this.files[0] ? this.files[0].name : 'No file chosen';
+        });
+    }
+});
+</script>
+
+<form method="post" enctype="multipart/form-data">
+    <!-- Existing audio input -->
+    <label for="audio_file">Upload Audio:</label>
+    <input type="file" name="audio_file" id="audio_file" accept="audio/*">
+    <label for="image_file">Upload Image:</label>
+    <input type="file" name="image_file" id="image_file" accept="image/*">
+    
+    <!-- Add image input -->
+    {{ edit_1 }}
+    
+    <button type="submit">Submit</button>
+</form>
