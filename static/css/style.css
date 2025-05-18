@@ -502,41 +502,34 @@
   }
   
   .settings-horizontal-outer {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding-top: 56px;
-    z-index: 1;
-    position: relative;
+      display: flex;
+      flex-direction: column; /* Stack the row and save button vertically */
+      align-items: center; /* Center content horizontally */
+      padding: 60px; /* Increase padding for more space inside */
+      background-color: #2f2f2f; /* Ensure the background color matches your theme */
+      border-radius: 16px; /* Increase border-radius for a more rounded look */
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15); /* Enhance shadow for depth */
+      width: 100%; /* Allow it to take full width up to max-width */
+      max-width: 1400px; /* Increase maximum width for a bigger box */
+      margin: 40px auto; /* Center the box horizontally and add vertical margin */
   }
   
   .settings-horizontal-row {
-    display: flex;
-    flex-direction: row;
-    gap: 24px;
-    justify-content: flex-end;
-    align-items: stretch;
-    width: 150%;
-    margin-left: 200px;
-    margin-bottom: 32px;
-    height: 70vh;
+      display: flex;
+      justify-content: center; /* Center the cards within the row */
+      gap: 20px; /* Add space between cards */
+      width: 100%; /* Allow the row to take full width of its container */
+      margin-bottom: 30px; /* Add space below the cards and above the save button */
   }
   
   .settings-card {
-    background: rgba(44, 54, 57, 0.92);
-    border-radius: 18px;
-    box-shadow: var(--shadow-lg);
-    border: 1.5px solid rgba(109, 211, 178, 0.13);
-    padding: 32px 28px 28px 28px;
-    flex: 1 1 25%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: box-shadow var(--transition-slow), border var(--transition-slow);
-    height: 100%;
+      flex: 1; /* Allow cards to grow equally */
+      min-width: 200px; /* Set a minimum width for each card */
+      max-width: 250px; /* Set a maximum width for each card */
+      padding: 20px; /* Add padding inside the cards */
+      background-color: #2f2f2f; /* Ensure background color matches your theme */
+      border-radius: 12px; /* Rounded corners for a modern look */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
   }
   
   .settings-card:hover {
@@ -644,6 +637,17 @@
   .switch input:checked + .slider:before {
     transform: translateX(20px);
     background: var(--color-text-dark);
+  }
+  
+  .settings-horizontal-save {
+      display: flex; /* Use flexbox to center the button */
+      justify-content: center; /* Center the button horizontally */
+      width: 100%; /* Ensure it takes full width to center correctly */
+  }
+  
+  .settings-save-btn {
+      /* Existing styles for the button */
+      margin-left: 0 !important; /* Remove inline margin if present */
   }
   
   /* ====================================

@@ -7,7 +7,7 @@ import io
 from pydub import AudioSegment
 from voice_to_voice import run_f5_tts_infer
 import uuid
-from voice_to_vid import run_voice_to_video  # Import the function
+from voice_to_vid import run_voice_to_video 
 
 from flask_session import Session
 
@@ -44,9 +44,9 @@ def read_journal_entries():
 @app.route('/journal', methods=['GET', 'POST'])
 def journal():
     months = []
-    journal_entries = {}
+    journal_entries = {}  # Ensure journal_entries is initialized
     existing_audios = {}
-    existing_images = {}  # Define existing_images
+    existing_images = {}
 
     # Ensure the journals directory exists
     if not os.path.exists(JOURNALS_DIR):
@@ -115,20 +115,36 @@ def journal():
 def add_month():
     month_name = request.form.get('month_name')
     year = request.form.get('year')
-    if month_name and year and (month_name, year) not in months:
-        months.append((month_name, year))
-        journal_entries[(month_name, year)] = []
 
+    # Read existing journal entries to get the list of existing months/years
+    journal_entries = read_journal_entries()
+    existing_months = list(journal_entries.keys()) # Get the list of (month, year) tuples
+
+    # Check if the new month/year combination already exists
+    if month_name and year and (month_name, year) not in existing_months:
         # Create a new text file for the month and year
-        file_path = get_journal_file_path(year, month_name)
-        if not os.path.exists(file_path):
-            with open(file_path, 'w') as file:
-                file.write("")  # Create an empty file
+        # Assuming get_journal_file_path is defined elsewhere and works correctly
+        # If not, you'll need to define it or construct the path here
+        file_path = os.path.join(JOURNALS_DIR, f"{year}-{month_name}.txt")
 
+        if not os.path.exists(file_path):
+            try:
+                with open(file_path, 'w') as file:
+                    file.write("")  # Create an empty file
+            except Exception as e:
+                print(f"Error creating journal file {file_path}: {e}")
+                # Optionally, return an error message to the user
+
+    # Redirect back to the journal page to display the updated list
     return redirect(url_for('journal'))
+
+def get_journal_file_path(year, month):
+    """Construct the file path for a journal entry based on year and month."""
+    return os.path.join(JOURNALS_DIR, f"{year}-{month}.txt")
 
 @app.route('/add_entry/<month>/<year>', methods=['POST'])
 def add_entry(month, year):
+    journal_entries = read_journal_entries()  # Load journal entries here
     entry_content = request.form.get('entry_content')
     entry_date = request.form.get('entry_date')
     audio_file = request.files.get('audio_file')  # Get the uploaded audio file
@@ -167,6 +183,7 @@ def add_entry(month, year):
 
 @app.route('/chat', methods=['GET', 'POST'])
 def chat():
+    print(session.get('response_mode'))
     if 'chat_history' not in session:
         session['chat_history'] = []
 
@@ -276,7 +293,7 @@ def chat():
 
                 bot_response = get_response(chat_message, journal_month)
 
-                if session.get('response_mode') == 'voice_to_voice':
+                if session.get('response_mode') == 'voice':
                     ref_audio_path = f"/Users/ashwathreddymuppa/time-face/audios/{year}-{month_name}.wav"
                     audio_id = str(uuid.uuid4())
                     generated_audio_dir = "/Users/ashwathreddymuppa/time-face/static/generated_audio"
@@ -289,9 +306,6 @@ def chat():
                     )
                     if tts_success:
                         # Speed up the audio by 10x using pydub
-                        audio = AudioSegment.from_file(output_file)
-                        fast_audio = audio.speedup(playback_speed=10.0)
-                        fast_audio.export(output_file, format="wav")
                         audio_url = f"/static/generated_audio/{audio_id}.wav"
                         session['chat_history'].append({
                             'type': 'bot_audio',
@@ -304,46 +318,16 @@ def chat():
                             'content': "❌ Voice generation failed.",
                             'timestamp': datetime.now().strftime("%H:%M")
                         })
-                elif session.get('response_mode') == 'voice_to_video':
-                    ref_audio_path = f"/Users/ashwathreddymuppa/time-face/audios/{year}-{month_name}.wav"
-                    audio_id = str(uuid.uuid4())
-                    generated_audio_dir = "/Users/ashwathreddymuppa/time-face/static/generated_audio"
-                    os.makedirs(generated_audio_dir, exist_ok=True)
-                    output_audio_file = f"{generated_audio_dir}/{audio_id}.wav"
-                    tts_success = run_f5_tts_infer(
-                        ref_audio=ref_audio_path,
-                        gen_text=bot_response,
-                        output_file=output_audio_file
-                    )
+                elif session.get('response_mode') == 'video':
+                    # Use the hardcoded video URL, ensuring it's accessible via /static
+                    # Make sure the video file is located in your static/DONE directory
+                    video_url = "/static/generated_audio/vo.mp4"
                     
-                    if tts_success:
-
-                        audio = AudioSegment.from_file(output_audio_file)
-                        fast_audio = audio.speedup(playback_speed=10.0)
-                        fast_audio.export(output_audio_file, format="wav")
-                        
-                        image_path = f"/Users/ashwathreddymuppa/time-face/images/{year}-{month_name}.png"
-                        output_video_file = f"{generated_audio_dir}/{audio_id}.mp4"
-                        run_voice_to_video(
-                            image_path=image_path,
-                            audio_path=output_audio_file,
-                            result_dir=generated_audio_dir
-                        )
-                        
-                        video_url = f"/static/generated_audio/{audio_id}.mp4"
-                        #video_url = f"/static/generated_audio/2025_05_18_03.04.16.mp4"
-                        
-                        session['chat_history'].append({
-                            'type': 'bot_video',
-                            'video_url': video_url,
-                            'timestamp': datetime.now().strftime("%H:%M")
-                        })
-                    else:
-                        session['chat_history'].append({
-                            'type': 'bot',
-                            'content': "❌ Voice generation failed.",
-                            'timestamp': datetime.now().strftime("%H:%M")
-                        })
+                    session['chat_history'].append({
+                        'type': 'bot_video',
+                        'video_url': video_url,
+                        'timestamp': datetime.now().strftime("%H:%M")
+                    })
                 else:
                     session['chat_history'].append({
                         'type': 'bot',
@@ -378,8 +362,7 @@ def chat():
 
 @app.route('/view_entry/<month>/<year>/<int:index>')
 def view_entry(month, year, index):
-    # Load journal entries here to make them accessible in this function
-    journal_entries = read_journal_entries()
+    journal_entries = read_journal_entries()  # Load journal entries here to make them accessible in this function
 
     month_year_key = (month, year)
 
@@ -394,7 +377,7 @@ def settings():
     if request.method == 'POST':
         # Save the selected response mode to the session
         session['response_mode'] = request.form.get('response_mode')
-        return redirect('/settings')  # Redirect back to settings page after saving
+        return redirect(url_for('settings'))  # Redirect back to settings page after saving
 
     # Retrieve the current mode from the session
     current_mode = session.get('response_mode', 'text')  # Default to 'text' if not set
@@ -410,14 +393,13 @@ def upload_audio(month, year):
         os.makedirs(audio_dir, exist_ok=True)
         audio_filename = os.path.join(audio_dir, f"{year}-{month}.wav")
         
-        # Check if the audio file already exists
         if os.path.exists(audio_filename):
             audio_uploaded = True
             return jsonify({
                 'chat_history': chat_history,
                 'audio_uploaded': audio_uploaded,
                 'message': 'Audio already exists'
-            }), 409  # HTTP 409 Conflict
+            }), 409
 
         audio_file.save(audio_filename)
         audio_uploaded = True
@@ -466,10 +448,6 @@ def upload_image(month, year):
         'message': 'No image file uploaded'
     }), 400
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
-
 JOURNALS_DIR = '/Users/ashwathreddymuppa/time-face/journals'
 
 def add_journal_entry(year, month, entry_content, entry_date):
@@ -477,3 +455,8 @@ def add_journal_entry(year, month, entry_content, entry_date):
     file_path = get_journal_file_path(year, month)
     with open(file_path, 'a') as file:
         file.write(f"Date: {entry_date}\n{entry_content}\n---\n")
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+

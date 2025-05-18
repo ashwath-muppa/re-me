@@ -1,6 +1,6 @@
 import subprocess
 
-def run_voice_to_video(image_path="arthur.png", audio_path="tests/output_f5tts.wav", result_dir="results"):
+def run_voice_to_video(image_path="volvo.png", audio_path="fin.wav", result_dir="DONE"):
     command = [
         "python", "inference.py",
         "--driven_audio", audio_path,

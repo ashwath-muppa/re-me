@@ -3,61 +3,362 @@
 {% block title %}Settings{% endblock %}
 
 {% block content %}
-<div class="settings-horizontal-outer">
-    <div class="settings-horizontal-row">
-        <!-- Response Mode Card -->
-        <div class="settings-card">
-            <div class="settings-card-title">Response Mode</div>
-            <div class="settings-option-group horizontal">
-                <label class="settings-radio-label custom-radio">
-                    <input type="radio" name="response_mode" value="text" {% if current_mode == 'text' %}checked{% endif %}>
-                    <span class="custom-radio-indicator"></span>
-                    Text
-                </label>
-                <label class="settings-radio-label custom-radio">
-                    <input type="radio" name="response_mode" value="voice_to_voice" {% if current_mode == 'voice_to_voice' %}checked{% endif %}>
-                    <span class="custom-radio-indicator"></span>
-                    Voice
-                </label>
-                <label class="settings-radio-label custom-radio">
-                    <input type="radio" name="response_mode" value="voice_to_video" {% if current_mode == 'voice_to_video' %}checked{% endif %}>
-                    <span class="custom-radio-indicator"></span>
-                    Video
-                </label>
+<div class="settings-container">
+    <form method="POST" action="{{ url_for('settings') }}">
+        <div class="settings-grid">
+            <!-- Response Mode Card -->
+            <div class="settings-card">
+                <div class="settings-card-title">Response Mode</div>
+                <div class="settings-options">
+                    <label class="settings-radio-label">
+                        <input type="radio" name="response_mode" value="text" {% if current_mode == 'text' %}checked{% endif %}>
+                        <span class="radio-indicator"></span>
+                        <span class="radio-text">Text</span>
+                    </label>
+                    <label class="settings-radio-label">
+                        <input type="radio" name="response_mode" value="voice" {% if current_mode == 'voice' %}checked{% endif %}>
+                        <span class="radio-indicator"></span>
+                        <span class="radio-text">Voice</span>
+                    </label>
+                    <label class="settings-radio-label">
+                        <input type="radio" name="response_mode" value="video" {% if current_mode == 'video' %}checked{% endif %}>
+                        <span class="radio-indicator"></span>
+                        <span class="radio-text">Video</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Color Theme Card -->
+            <div class="settings-card">
+                <div class="settings-card-title">Color Theme</div>
+                <div class="settings-options theme-options">
+                    <button type="button" class="theme-btn" data-theme="light">Light</button>
+                    <button type="button" class="theme-btn" data-theme="dark">Dark</button>
+                    <button type="button" class="theme-btn active" data-theme="system">System</button>
+                </div>
+            </div>
+            
+            <!-- Font Size Card -->
+            <div class="settings-card">
+                <div class="settings-card-title">Font Size</div>
+                <div class="settings-options font-options">
+                    <button type="button" class="font-btn" data-size="small">Small</button>
+                    <button type="button" class="font-btn active" data-size="medium">Medium</button>
+                    <button type="button" class="font-btn" data-size="large">Large</button>
+                </div>
+            </div>
+            
+            <!-- Notifications Card -->
+            <div class="settings-card">
+                <div class="settings-card-title">Notifications</div>
+                <div class="settings-options notification-option">
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="notifications" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="notification-text">Enable</span>
+                </div>
             </div>
         </div>
-        <!-- Color Theme Card -->
-        <div class="settings-card">
-            <div class="settings-card-title">Color Theme</div>
-            <div class="settings-section-options">
-                <button type="button" class="settings-theme-btn light">Light</button>
-                <button type="button" class="settings-theme-btn dark">Dark</button>
-                <button type="button" class="settings-theme-btn system">System</button>
-            </div>
+        
+        <div class="save-container">
+            <button type="submit" class="save-btn">Save</button>
         </div>
-        <!-- Font Size Card -->
-        <div class="settings-card">
-            <div class="settings-card-title">Font Size</div>
-            <div class="settings-section-options">
-                <button type="button" class="settings-font-btn">Small</button>
-                <button type="button" class="settings-font-btn">Medium</button>
-                <button type="button" class="settings-font-btn">Large</button>
-            </div>
-        </div>
-        <!-- Notifications Card -->
-        <div class="settings-card">
-            <div class="settings-card-title">Notifications</div>
-            <div class="settings-section-options">
-                <label class="switch">
-                    <input type="checkbox" checked>
-                    <span class="slider"></span>
-                </label>
-                <span style="margin-left: 12px; color: #b0f5d1;">Enable</span>
-            </div>
-        </div>
-    </div>
-    <div class="settings-horizontal-save">
-        <button type="submit" class="settings-save-btn modern-btn" style="margin-left: 200px;">Save</button>
-    </div>
+    </form>
 </div>
+
+<style>
+/* General Styles */
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Settings Grid Layout */
+.settings-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+/* Settings Card Styles */
+.settings-card {
+    background-color: #2f2f2f;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.settings-card-title {
+    color: #7AD4AE;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.settings-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+/* Radio Button Styles */
+.settings-radio-label {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 34px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 16px;
+    transition: color 0.2s ease;
+}
+
+.settings-radio-label:hover {
+    color: #b0f5d1;
+}
+
+.settings-radio-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.radio-indicator {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 22px;
+    width: 22px;
+    background-color: #3a3a3a;
+    border-radius: 50%;
+    border: 2px solid #555;
+    transition: all 0.2s ease;
+}
+
+.settings-radio-label:hover .radio-indicator {
+    border-color: #7AD4AE;
+}
+
+.settings-radio-label input:checked ~ .radio-indicator {
+    border-color: #7AD4AE;
+    background-color: #2f2f2f;
+}
+
+.settings-radio-label input:checked ~ .radio-indicator:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #7AD4AE;
+}
+
+.radio-text {
+    font-weight: 400;
+}
+
+/* Button Styles */
+.theme-options, .font-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.theme-btn, .font-btn {
+    background-color: #3a3a3a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    min-width: 80px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.theme-btn:hover, .font-btn:hover {
+    background-color: #444;
+}
+
+.theme-btn.active, .font-btn.active {
+    background-color: #7AD4AE;
+    color: #222;
+    box-shadow: 0 2px 6px rgba(122, 212, 174, 0.3);
+}
+
+/* Toggle Switch */
+.notification-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 56px;
+    height: 28px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #3a3a3a;
+    transition: .3s;
+    border-radius: 28px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .toggle-slider {
+    background-color: #7AD4AE;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(28px);
+}
+
+.notification-text {
+    margin-left: 16px;
+    color: #b0f5d1;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Save Button */
+.save-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.save-btn {
+    background-color: #7AD4AE;
+    color: #222;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 48px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(122, 212, 174, 0.3);
+    letter-spacing: 0.5px;
+}
+
+.save-btn:hover {
+    background-color: #8DEFC0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(122, 212, 174, 0.4);
+}
+
+.save-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(122, 212, 174, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1000px) {
+    .settings-grid {
+        justify-content: center;
+    }
+    
+    .settings-card {
+        flex: 0 0 calc(50% - 20px);
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 600px) {
+    .settings-card {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .settings-container {
+        padding: 20px 10px;
+    }
+}
+</style>
+
+<script>
+// Add client-side functionality for button toggling
+document.addEventListener('DOMContentLoaded', function() {
+    // Theme buttons
+    const themeButtons = document.querySelectorAll('.theme-btn');
+    themeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            themeButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            // Add logic to save theme preference
+        });
+    });
+    
+    // Font size buttons
+    const fontButtons = document.querySelectorAll('.font-btn');
+    fontButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            fontButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            // Add logic to save font size preference
+        });
+    });
+});
+</script>
 {% endblock %}

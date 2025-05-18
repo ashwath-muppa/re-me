@@ -1,13 +1,19 @@
-{% extends 'base.html' %}
-
-{% block title %}View Journal Entry{% endblock %}
-
-{% block content %}
-<div class="view-entry-container">
-    <h2>Journal Entry for {{ month }} {{ year }}</h2>
-    <p><strong>Date:</strong> {{ entry.date }}</p>
-    <p><strong>Content:</strong></p>
-    <p>{{ entry.content }}</p>
-    <a href="{{ url_for('journal') }}">Back to Journal</a>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Journal Entry</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="view-entry-container">
+        <h2>{{ month }} {{ year }} Journal Entry</h2>
+        <div class="entry-content">
+            <p>{{ entry.content }}</p>
+            <p><strong>Date:</strong> {{ entry.date }}</p>
+        </div>
+        <a href="{{ url_for('journal') }}" class="btn btn-secondary">Back to Journal</a>
+    </div>
+</body>
+</html>
